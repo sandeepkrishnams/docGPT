@@ -58,8 +58,8 @@ class DocumentManager(APIView):
 
     def post(self, request, format=None):
         document = request.FILES['upload']
-        new_document = create_renamed(document)
-        file_hash = get_file_hash(new_document)
+        renamed_document = create_renamed(document)
+        file_hash = get_file_hash(renamed_document)
 
         existing_documents = Document.objects.filter(file_hash=file_hash)
 
@@ -67,66 +67,39 @@ class DocumentManager(APIView):
             if existing_document.user == request.user:
                 return Response('Document is already uploaded', status=status.HTTP_400_BAD_REQUEST)
 
+        serializer_data = {
+            'user': request.user.id,
+            'name': document.name,
+            'type': renamed_document.content_type,
+            'category': request.data['category'],
+            'file_hash': file_hash,
+        }
+
         if not existing_documents.exists():
-            serializer_data = {
-                'user': request.user.id,
-                'name': document.name,
-                'type': new_document.content_type,
-                'category': request.data['category'],
-                'upload': new_document,
-                'file_hash': file_hash
+            serializer_data['upload'] = renamed_document
+        else:
+            existing_document = existing_documents.first()
+            if existing_document:
+                serializer_data['upload'] = existing_document.upload
+        serializer = DocumentUploadSerializer(
+            data=serializer_data)  # type: ignore
+
+        if serializer.is_valid():
+            serializer.save()
+
+            file_relative_path = str(renamed_document)
+            file_url = settings.MEDIA_URL + file_relative_path
+
+            response_data = {
+                'message': 'Document uploaded successfully.',
+                'file_name': document.name,
+                'file_type': document.content_type,
+                'file_url': file_url,
+                'media_url': media_url
             }
 
-            serializer = DocumentUploadSerializer(
-                data=serializer_data)  # type: ignore
-
-            if serializer.is_valid():
-                serializer.save()
-
-                file_relative_path = str(new_document)
-                file_url = settings.MEDIA_URL + file_relative_path
-
-                response_data = {
-                    'message': 'Document uploaded successfully.',
-                    'file_name': document.name,
-                    'file_type': document.content_type,
-                    'file_url': file_url,
-                    'media_url': media_url
-                }
-
-                return Response(response_data, status=status.HTTP_201_CREATED)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-        existing_document = existing_documents.first()
-        if existing_document:
-            serializer_data = {
-                'user': request.user.id,
-                'name': document.name,
-                'type': new_document.content_type,
-                'category': request.data['category'],
-                'file_hash': file_hash,
-                'upload': existing_document.upload
-            }
-
-            serializer = DocumentUploadSerializer(
-                data=serializer_data)  # type: ignore
-
-            if serializer.is_valid():
-                serializer.save()
-
-                file_url = settings.MEDIA_URL + \
-                    str(existing_document.upload)
-
-                response_data = {
-                    'message': 'Document uploaded successfully.',
-                    'file_name': document.name,
-                    'file_type': document.content_type,
-                    'file_url': file_url,
-                    'media_url': media_url
-                }
-
-                return Response(response_data, status=status.HTTP_201_CREATED)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response(response_data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, id=None, format=None):
         try:

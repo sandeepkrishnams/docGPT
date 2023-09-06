@@ -6,5 +6,3 @@ urlpatterns = [
     path('', views.DocumentManager.as_view(), name='doc_manager'),
     path('<int:id>', views.DocumentManager.as_view(), name='doc_manager'),
 ]
-
-# remove,filter,search can be done in path ''
