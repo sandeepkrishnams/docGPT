@@ -12,7 +12,6 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 import os
 from datetime import timedelta
-from rest_framework_simplejwt import token_blacklist
 
 from pathlib import Path
 from dotenv import load_dotenv

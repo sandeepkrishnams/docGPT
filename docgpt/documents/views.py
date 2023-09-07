@@ -1,4 +1,5 @@
 import os
+import json
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -8,7 +9,7 @@ from rest_framework.pagination import PageNumberPagination
 from django.conf import settings
 from docgpt.utils import get_paginated_response
 from documents.models import Document
-from documents.utils import create_renamed, get_file_hash
+from documents.utils import create_renamed, get_file_hash, get_content
 from documents.document_serializer import DocumentListSerializer, DocumentUploadSerializer
 
 
@@ -57,7 +58,11 @@ class DocumentManager(APIView):
         return Response(paginated_response, status=status.HTTP_200_OK)
 
     def post(self, request, format=None):
-        document = request.FILES['upload']
+        try:
+            document = request.FILES['upload']
+        except KeyError:
+            return Response('Upload file not provided.', status=status.HTTP_400_BAD_REQUEST)
+
         renamed_document = create_renamed(document)
         file_hash = get_file_hash(renamed_document)
 
@@ -95,8 +100,22 @@ class DocumentManager(APIView):
                 'file_name': document.name,
                 'file_type': document.content_type,
                 'file_url': file_url,
-                'media_url': media_url
             }
+            document = Document.objects.filter(file_hash=file_hash).first()
+
+            document_id = document.id
+            document_name = document.name
+            document_content = get_content('docgpt/' + file_url)
+
+            data = {
+                'doc_id': document_id,
+                'name': document_name,
+                'content': document_content,
+            }
+
+            solr_data = json.dumps(data)
+
+            print(solr_data)
 
             return Response(response_data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
