@@ -9,7 +9,7 @@ from rest_framework.pagination import PageNumberPagination
 from django.conf import settings
 from docgpt.utils import get_paginated_response
 from documents.models import Document
-from documents.utils import create_renamed, get_file_hash, get_content
+from documents.utils import create_renamed, get_file_hash, get_content, add_content_to_solr
 from documents.document_serializer import DocumentListSerializer, DocumentUploadSerializer
 
 
@@ -90,7 +90,7 @@ class DocumentManager(APIView):
             data=serializer_data)  # type: ignore
 
         if serializer.is_valid():
-            serializer.save()
+            response = serializer.save()
 
             file_relative_path = str(renamed_document)
             file_url = settings.MEDIA_URL + file_relative_path
@@ -101,21 +101,18 @@ class DocumentManager(APIView):
                 'file_type': document.content_type,
                 'file_url': file_url,
             }
-            document = Document.objects.filter(file_hash=file_hash).first()
 
-            document_id = document.id
-            document_name = document.name
             document_content = get_content('docgpt/' + file_url)
 
-            data = {
-                'doc_id': document_id,
-                'name': document_name,
-                'content': document_content,
-            }
-
-            solr_data = json.dumps(data)
-
-            print(solr_data)
+            if response:
+                data = {
+                    'id': response.id,
+                    'type': response.upload.name.split('.')[-1],
+                    'name': response.upload.name,
+                    'content': document_content,
+                }
+                solr_data = json.dumps(data)
+                add_content_to_solr(data)
 
             return Response(response_data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

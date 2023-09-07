@@ -222,4 +222,5 @@ OTP_LENGTH = 6
 
 SOLR_PORT = 8983
 SOLR_HOST = "http://localhost"
-SOLR_HOST_URL = f"{SOLR_HOST}:{SOLR_PORT}"
+SOLR_CORE_NAME = 'documents_data'
+SOLR_HOST_URL = f"{SOLR_HOST}:{SOLR_PORT}/solr/{SOLR_CORE_NAME}"

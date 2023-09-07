@@ -5,6 +5,8 @@ from django.core.files.uploadedfile import InMemoryUploadedFile
 from PIL import Image
 from tika import parser, language, detector
 import pytesseract
+import pysolr
+from django.conf import settings
 
 
 def create_renamed(document):
@@ -58,3 +60,9 @@ def get_content(document_path):
 
     except Exception as e:
         print("An error occurred:", e)
+
+
+def add_content_to_solr(data):
+    solr_url = settings.SOLR_HOST_URL
+    solr = pysolr.Solr(solr_url, always_commit=True)
+    solr.add([data])
