@@ -2,6 +2,7 @@ import os
 import uuid
 import hashlib
 from django.core.files.uploadedfile import InMemoryUploadedFile
+from tika import parser, language, detector
 
 
 def create_renamed(document):

@@ -1,5 +1,7 @@
-django>=4.2
-djangorestframework
-mysqlclient
-djangorestframework-simplejwt
-python-dotenv
+django==4.2.3
+djangorestframework==3.14.0
+mysqlclient==2.1.1
+djangorestframework-simplejwt==5.2.2
+python-dotenv==1.0.0
+tika==2.6
+pytesseract==0.3.10
