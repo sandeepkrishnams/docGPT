@@ -1,5 +1,6 @@
 import os
 import json
+from asgiref.sync import async_to_sync
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -101,8 +102,8 @@ class DocumentManager(APIView):
                 'file_type': document.content_type,
                 'file_url': file_url,
             }
-
-            document_content = get_content('docgpt/' + file_url)
+            print(file_url)
+            document_content = get_content(file_url)
 
             if response:
                 data = {

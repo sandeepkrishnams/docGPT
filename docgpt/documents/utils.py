@@ -3,7 +3,7 @@ import uuid
 import hashlib
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from PIL import Image
-from tika import parser, language, detector
+from tika import parser, detector
 import pytesseract
 import pysolr
 from django.conf import settings
@@ -46,20 +46,23 @@ def extract_text_from_document(document_path):
 
 
 def get_content(document_path):
-    try:
-        detected_mime_type = detector.from_file(document_path)
-        text_content = None
+    # TODO: Replace the absalute path with relative path. Now we are passing Absalute path to the detector function
+    dirname = os.path.dirname(__file__)
+    newDirNameArr = dirname.split('/')
+    newDirNameArr.pop()
+    newDir = '/'.join(newDirNameArr)
+    filename = newDir + document_path
+    detected_mime_type = detector.from_file(filename)
+    print(detected_mime_type)
+    text_content = None
 
-        if detected_mime_type.lower().startswith("image"):
-            text_content = extract_text_from_image(document_path)
-        else:
-            text_content, metadata = extract_text_from_document(document_path)
-            if text_content is None:
-                return
-        return text_content
-
-    except Exception as e:
-        print("An error occurred:", e)
+    if detected_mime_type.lower().startswith("image"):
+        text_content = extract_text_from_image(filename)
+    else:
+        text_content, metadata = extract_text_from_document(filename)
+        if text_content is None:
+            return
+    return text_content
 
 
 def add_content_to_solr(data):
