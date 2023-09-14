@@ -1,12 +1,17 @@
 import os
 import uuid
 import hashlib
+import json
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from PIL import Image
 from tika import parser, detector
 import pytesseract
 import pysolr
 from django.conf import settings
+
+# Creating a Solar instance
+solr_url = settings.SOLR_HOST_URL
+solr = pysolr.Solr(solr_url, always_commit=True)
 
 
 def create_renamed(document):
@@ -53,7 +58,6 @@ def get_content(document_path):
     newDir = '/'.join(newDirNameArr)
     filename = newDir + document_path
     detected_mime_type = detector.from_file(filename)
-    print(detected_mime_type)
     text_content = None
 
     if detected_mime_type.lower().startswith("image"):
@@ -66,6 +70,16 @@ def get_content(document_path):
 
 
 def add_content_to_solr(data):
-    solr_url = settings.SOLR_HOST_URL
-    solr = pysolr.Solr(solr_url, always_commit=True)
     solr.add([data])
+
+
+def search_solr_content(query_dict, params, solr_response_key_list, filter_query):
+    fl = ' '.join(map(str, solr_response_key_list))
+    query_string = '\n'.join(
+        [f"{key}:{value}" for key, value in query_dict.items()])
+    data = {
+        'fl': fl,
+        **params
+    }
+    params = json.loads(json.dumps(data))
+    return solr.search(query_string, **params, fq=filter_query).docs
