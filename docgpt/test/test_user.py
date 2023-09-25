@@ -7,7 +7,6 @@ from rest_framework.utils.serializer_helpers import ReturnList
 
 class UserSignupTests(APITestCase):
     def setUp(self):
-        print(f'\n{self}')
         self.registration_url = reverse('signup')
         self.test_user_data = {
             'username': 'testuser@gmail.com',
@@ -172,6 +171,33 @@ class UserProfileTests(APITestCase):
         self.assertTrue(len(response.data.get('data')), 1)
         self.assertTrue(response.data.get('data')[0].get('id') == self.user.id)
 
+    def test_superuser_actions(self):
+        self.client.force_authenticate(user=self.super_user)
+        response = self.client.delete(f'{self.profile_url}{self.user.id}')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn('message', response.data)
+        self.assertTrue('deleted successfully' in response.data.get('message'))
+
+        response = self.client.delete(
+            f'{self.profile_url}{self.super_user.id}')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn('message', response.data)
+        self.assertTrue('deleted successfully' in response.data.get('message'))
+
+        invalid_id = 99999
+        response = self.client.delete(f'{self.profile_url}{invalid_id}')
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertIn('message', response.data)
+        self.assertTrue('User not found' in response.data.get('message'))
+
+        self.client.force_authenticate(user=self.user)
+        response = self.client.delete(
+            f'{self.profile_url}{self.super_user.id}')
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertIn('message', response.data)
+        self.assertTrue(
+            "Need admin previlages" in response.data.get('message'))
+
 
 class UserPasswordUpdateTests(APITestCase):
     def setUp(self):
@@ -225,6 +251,8 @@ class UserProfileUpdateTests(APITestCase):
         self.profile_update_url = reverse('profile')
         self.user = User.objects.create_user(
             username='testuser@gmail.com', password='testpassword', first_name='test', last_name='user')
+        self.super_user = User.objects.create_superuser(
+            username='superuser', password='superuser')
 
     def test_user_can_update_profile(self):
         self.client.force_authenticate(user=self.user)
@@ -243,3 +271,36 @@ class UserProfileUpdateTests(APITestCase):
         self.assertTrue(all(key in response_data for key in expected_keys))
         self.assertEqual(response_data.get('first_name'), 'test')
         self.assertEqual(response_data.get('last_name'), 'user')
+
+    def test_superuser_can_update_profile(self):
+        self.client.force_authenticate(user=self.super_user)
+        update_password_url = reverse(
+            'profile', args=[self.user.id])
+
+        update_data = {
+            "first_name": "testupdate",
+            "last_name": "user"
+        }
+
+        response = self.client.put(
+            update_password_url, update_data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn('message', response.data)
+        self.assertIn('response', response.data)
+        self.assertTrue(response.data.get('message'),
+                        'Profile updated successfully')
+
+    def test_superuser_update_user_profile_with_out_id(self):
+        self.client.force_authenticate(user=self.super_user)
+        update_password_url = reverse('profile')
+
+        update_data = {
+            "first_name": "testupdate",
+            "last_name": "user"
+        }
+
+        response = self.client.put(
+            update_password_url, update_data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('message', response.data)
+        self.assertEqual(response.data.get('message'), 'User ID is required')
