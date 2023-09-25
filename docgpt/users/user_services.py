@@ -26,6 +26,6 @@ def delete_user(user_id):
     try:
         user = User.objects.get(id=user_id)
         user.delete()
-        return Response({"message": f"User with ID {user_id} deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
+        return Response({"message": f"User with ID {user_id} deleted successfully"}, status=status.HTTP_200_OK)
     except User.DoesNotExist:
         return Response({"message": "User not found"}, status=status.HTTP_404_NOT_FOUND)
