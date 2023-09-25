@@ -4,3 +4,5 @@ env/
 __pycache__/
 *.py[cod]
 docgpt/users/__pycache__/
+migrations/
+upload/*
