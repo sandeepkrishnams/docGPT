@@ -1,2 +1,6 @@
 docgpt/documents/uploads/
 env/
+.vscode/
+__pycache__/
+*.py[cod]
+docgpt/users/__pycache__/

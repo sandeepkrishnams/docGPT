@@ -46,9 +46,10 @@ class UserProfileView(APIView):
         paginator = self.pagination_class()
         if request.user.is_superuser:
             if id is None:
-                users = User.objects.all().exclude(is_superuser=True)
+                users = User.objects.all().exclude(is_superuser=True).order_by('id')
             else:
-                users = User.objects.filter(id=id).exclude(is_superuser=True)
+                users = User.objects.filter(id=id).exclude(
+                    is_superuser=True).order_by('id')
                 if not users:
                     return Response({"message": "Invalid ID"}, status=status.HTTP_400_BAD_REQUEST)
             paginated_data = paginator.paginate_queryset(

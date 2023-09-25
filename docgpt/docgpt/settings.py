@@ -225,3 +225,5 @@ SOLR_HOST = "http://localhost"
 SOLR_CORE_NAME = 'documents_data'
 SOLR_HOST_URL = f"{SOLR_HOST}:{SOLR_PORT}/solr/{SOLR_CORE_NAME}"
 SOLR_PAGINATION_ROWS = 25
+
+APPEND_SLASH = False
