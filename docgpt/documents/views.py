@@ -15,6 +15,8 @@ from documents.document_serializer import DocumentListSerializer, DocumentUpload
 
 media_url = settings.MEDIA_URL
 
+# TODO :create readme.md
+
 
 class DocumentManager(APIView):
     authentication_classes = [JWTAuthentication]
