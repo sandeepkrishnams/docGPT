@@ -46,7 +46,13 @@ class UserProfileView(APIView):
         paginator = self.pagination_class()
         if request.user.is_superuser:
             if id is None:
-                users = User.objects.all().exclude(is_superuser=True).order_by('id')
+                query_params = request.query_params
+                username = query_params.get('username')
+                if username:
+                    users = User.objects.filter(username=username).exclude(
+                        is_superuser=True).order_by('id')
+                else:
+                    users = User.objects.all().exclude(is_superuser=True).order_by('id')
             else:
                 users = User.objects.filter(id=id).exclude(
                     is_superuser=True).order_by('id')

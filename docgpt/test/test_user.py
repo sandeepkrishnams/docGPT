@@ -7,6 +7,7 @@ from rest_framework.utils.serializer_helpers import ReturnList
 
 class UserSignupTests(APITestCase):
     def setUp(self):
+        print(f'\n{self}')
         self.registration_url = reverse('signup')
         self.test_user_data = {
             'username': 'testuser@gmail.com',
@@ -140,6 +141,17 @@ class UserProfileTests(APITestCase):
         self.assertEqual(data['username'], 'testuser@gmail.com')
         self.assertEqual(data['first_name'], 'test')
         self.assertEqual(data['last_name'], 'user')
+
+    def test_superuser_search(self):
+        self.client.force_authenticate(user=self.super_user)
+        response = self.client.get(
+            self.profile_url + f'?username={self.user.username}')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response_keys = ['total_pages',
+                         'current_page', 'total_data_count', 'data']
+        self.assertTrue(all(key in response.data for key in response_keys))
+        data = response.data.get('data')[0]
+        self.assertEqual(data['username'], self.user.username)
 
     def test_superuser_error_with_invalid_user_id(self):
         self.client.force_authenticate(user=self.super_user)
