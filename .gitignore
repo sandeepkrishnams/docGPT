@@ -6,3 +6,5 @@ __pycache__/
 docgpt/users/__pycache__/
 migrations/
 upload/*
+.pytest_cache/
+docgpt/users/emails/
