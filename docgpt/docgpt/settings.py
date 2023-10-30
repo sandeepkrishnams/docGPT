@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'rest_framework_simplejwt',
+    'corsheaders',
     'users',
     'documents',
     'interactions',
@@ -53,6 +54,8 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
+    "django.middleware.common.CommonMiddleware",
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -152,12 +155,12 @@ REST_FRAMEWORK = {
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
-    'PAGE_SIZE': 2
+    'PAGE_SIZE': 10
 }
 
 
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=60),
+    "ACCESS_TOKEN_LIFETIME": timedelta(days=1),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
     "ROTATE_REFRESH_TOKENS": False,
     "BLACKLIST_AFTER_ROTATION": False,
@@ -215,6 +218,7 @@ SMTP_MAIL_BACKEND_EMAIL_ADDRESS = 'sandeep@gmail.com'
 
 
 FORGOT_TOKEN_EXPIRE_TIME = timedelta(minutes=5)
+SIGNUP_TOKEN_EXPIRE_TIME = timedelta(minutes=5)
 SIGNING_KEY = SECRET_KEY
 EXPIRE_TIME_FORMAT = "%Y-%m-%d %H:%M:%S.%f"
 OTP_LENGTH = 6
@@ -227,3 +231,22 @@ SOLR_HOST_URL = f"{SOLR_HOST}:{SOLR_PORT}/solr/{SOLR_CORE_NAME}"
 SOLR_PAGINATION_ROWS = 25
 
 APPEND_SLASH = False
+
+
+# CORS SETTINGS
+
+CORS_ALLOWED_ORIGINS = [
+    'http://localhost:5173',
+]
+
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]

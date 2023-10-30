@@ -6,6 +6,7 @@ from rest_framework import status
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.permissions import IsAuthenticated
 from categories.permissions import SuperuserPermission
+from documents.models import Document
 
 
 class CategoryListView(APIView):
@@ -30,14 +31,14 @@ class CategoryListView(APIView):
     def get(self, request, id=None):
         if id is not None:
             try:
-                category = Category.objects.get(id=id)
+                category = Category.objects.get(id=id).order_by('category')
             except Category.DoesNotExist:
                 return Response({"message": "Category not found"}, status=status.HTTP_404_NOT_FOUND)
             serializer = CategorySerializer(category)
             return Response(serializer.data, status=status.HTTP_200_OK)
 
         else:
-            categories = Category.objects.all()
+            categories = Category.objects.all().order_by('category')
             serializer = CategorySerializer(categories, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -47,7 +48,14 @@ class CategoryListView(APIView):
                 category = Category.objects.get(id=id)
             except Category.DoesNotExist:
                 return Response(f"Category with ID '{id}' doesn't exist.", status=status.HTTP_404_NOT_FOUND)
+
+            if Document.objects.filter(category_id=id).exists():
+                return Response(
+                    {"message": f"Category '{category.category}' is in use and cannot be deleted."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
             category.delete()
-            return Response(f"Category '{category.category}' Deleted.", status=status.HTTP_200_OK)
+            return Response(f"Category '{category.category}' Deleted.", status=status.HTTP_204_NO_CONTENT)
 
         return Response({"message": "No id Provided in url"}, status=status.HTTP_404_NOT_FOUND)

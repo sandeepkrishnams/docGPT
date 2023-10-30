@@ -7,6 +7,8 @@ urlpatterns = [
     path('<int:id>', views.UserProfileView.as_view(), name='profile'),
     path('', views.UserProfileView.as_view(), name='profile'),
     path('signup/', views.UserManager.as_view(), name='signup'),
+    path('presignup/', views.UserSignUPManager.as_view(), name='signup'),
+    path('verifysignup/', views.UserSignUPVerifier.as_view(), name='signup'),
     path('login/', views.CustomTokenObtainPairView.as_view(),
          name='token_obtain_pair'),
     path('login/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
@@ -14,4 +16,6 @@ urlpatterns = [
          name='updatepassword'),
     path('forgot_password/', views.ForgotPassword.as_view()),
     path('reset/', views.ResetPassword.as_view()),
+    path('user-is-active/<int:pk>/',
+         views.UserUpdateIsActiveView.as_view(), name='user-is-active')
 ]

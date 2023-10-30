@@ -3,12 +3,15 @@ from rest_framework.response import Response
 
 from users.user_serializer import UserSignUpSerializer, UserProfileUpdateSerializer
 from django.contrib.auth.models import User
+from users.utils import validate_username
 
 
 def register_user(request_data):
+    print(request_data.get('username'))
+    validate_username(request_data.get('username'))
     serializer = UserSignUpSerializer(data=request_data)
     if serializer.is_valid(raise_exception=True):
-        serializer.save()
+        res = serializer.save()
         return Response({"response": serializer.data, "message": "Registration successful"}, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

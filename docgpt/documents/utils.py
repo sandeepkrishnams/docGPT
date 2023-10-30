@@ -82,4 +82,8 @@ def search_solr_content(query_dict, params, solr_response_key_list, filter_query
         **params
     }
     params = json.loads(json.dumps(data))
-    return solr.search(query_string, **params, fq=filter_query).docs
+    return solr.search(query_string, **params, fq=filter_query).raw_response
+
+
+def delete_solr_content(id):
+    return solr.delete(id=id)

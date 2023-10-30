@@ -6,3 +6,4 @@ python-dotenv==1.0.0
 tika==2.6
 pytesseract==0.3.10
 pysolr==3.9.0
+django-cors-headers==4.2.0

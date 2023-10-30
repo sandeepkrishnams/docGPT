@@ -5,7 +5,7 @@ from .models import Category
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
-        fields = ['id', 'category']
+        fields = ['id', 'category', 'created_at', 'updated_at']
         extra_kwargs = {
             'category': {'required': True},
             'id': {'required': True}
