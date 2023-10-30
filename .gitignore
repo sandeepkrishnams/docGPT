@@ -5,6 +5,6 @@ __pycache__/
 *.py[cod]
 docgpt/users/__pycache__/
 migrations/
-upload/*
+uploads/*
 .pytest_cache/
 docgpt/users/emails/
