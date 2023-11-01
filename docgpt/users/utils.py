@@ -17,7 +17,6 @@ def generate_otp():
 
 
 def sent_mail_user(email, otp):
-
     try:
         send_mail(
             settings.SMTP_MAIL_BACKEND_EMAIL_SUBJECT,

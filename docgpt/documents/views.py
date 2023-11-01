@@ -44,7 +44,7 @@ class DocumentManager(APIView):
         query_params = request.query_params
         is_superuser = request.user.is_superuser
         id = request.user.id
-        query_dict = {}
+        query_dict = {"user_id": "*"}
         response = None
 
         page = query_params.get('page')
@@ -89,18 +89,26 @@ class DocumentManager(APIView):
                 solr_params['sort'] = f'{sortparam} {sortorder}'
 
             # show all or the user_id provided by superuser
-            query_dict['user_id'] = user_id if user_id else '*'
+            if user_id:
+                filter_queries.append(f'user_id:{user_id}')
+            else:
+                filter_queries.append(f'user_id:*')
+
         else:
             solr_response_key_list.append('name')
             solr_response_key_list.append('category_id')
             solr_response_key_list.append('original_name')
-            query_dict['user_id'] = id
-
+            filter_queries.append(f'user_id:{id}')
         if category:
+            query_dict.clear()
             query_dict['category_id'] = category
+
         if search_string:
-            query_dict['content'] = f'{search_string}*'
+            query_dict.clear()
+            query_dict['content'] = f'({search_string})'
+
         if search_file:
+            query_dict.clear()
             query_dict['original_name'] = f'*{search_file}*'
 
         # if a search filter category present and that to solr filterlist

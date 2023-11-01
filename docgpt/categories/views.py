@@ -7,10 +7,12 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.permissions import IsAuthenticated
 from categories.permissions import SuperuserPermission
 from documents.models import Document
+from rest_framework.pagination import PageNumberPagination
+from docgpt.utils import get_paginated_response
 
 
 class CategoryListView(APIView):
-
+    pagination_class = PageNumberPagination
     authentication_classes = [JWTAuthentication]
 
     def initial(self, request, *args, **kwargs):
@@ -29,6 +31,14 @@ class CategoryListView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def get(self, request, id=None):
+        sort = request.query_params.get('sort')
+        order = request.query_params.get('order')
+        if order == 'asc':
+            modified_order = ''
+        else:
+            modified_order = '-'
+        print(f'{modified_order}{sort}')
+        paginator = self.pagination_class()
         if id is not None:
             try:
                 category = Category.objects.get(id=id).order_by('category')
@@ -38,9 +48,16 @@ class CategoryListView(APIView):
             return Response(serializer.data, status=status.HTTP_200_OK)
 
         else:
-            categories = Category.objects.all().order_by('category')
-            serializer = CategorySerializer(categories, many=True)
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            if sort and order:
+                categories = Category.objects.all().order_by(
+                    f'{modified_order}{sort}')
+            else:
+                categories = Category.objects.all().order_by('-created_at')
+            paginated_data = paginator.paginate_queryset(categories, request)
+            serializer = CategorySerializer(paginated_data, many=True)
+            paginated_response = get_paginated_response(
+                paginator, data=serializer.data)
+            return Response(paginated_response, status=status.HTTP_200_OK)
 
     def delete(self, request, id):
         if id is not None:
